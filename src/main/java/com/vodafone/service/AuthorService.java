@@ -9,7 +9,7 @@ import java.util.List;
 public interface AuthorService {
     Author getAuthorById(Integer id);
 
-    Author isAuthorExist(Integer id);
+    boolean isAuthorExist(Integer id);
 
     Author addAuthor(Author author);
 

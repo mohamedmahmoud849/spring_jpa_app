@@ -1,18 +1,15 @@
 package com.vodafone.service;
 
-import com.vodafone.contoller.ArticlesController;
-import com.vodafone.contoller.AuthorController;
+import com.vodafone.controller.ArticlesController;
+import com.vodafone.controller.AuthorController;
 import com.vodafone.errorhandlling.DuplicateEntity;
 import com.vodafone.errorhandlling.NotFoundException;
 import com.vodafone.model.Article;
 import com.vodafone.model.Links;
 import com.vodafone.repo.ArticleRepo;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.id.IntegralDataTypeHolder;
 import org.springframework.context.annotation.Primary;
 import org.springframework.hateoas.Link;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +26,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Primary
 @RequiredArgsConstructor
 @Transactional
-public class AuthorServiceImplUsingRepo implements AuthorService
+public class AuthorServiceImpl implements AuthorService
 {
     private final AuthorRepo authorRepo;
     private final ArticleRepo articleRepo;
@@ -59,7 +56,7 @@ public class AuthorServiceImplUsingRepo implements AuthorService
     @Override
     public Author addAuthor(Author author)
     {
-        if(isAuthorExist(author.getId()) != null){
+        if(isAuthorExist(author.getId())){
             throw new DuplicateEntity("This Entity Already in our DataBase ");
         }else{
 
@@ -70,14 +67,17 @@ public class AuthorServiceImplUsingRepo implements AuthorService
     @Override
     public Integer deleteAuthorById(Integer id)
     {
-        getAuthorById(id);
-        authorRepo.deleteById(id);
-        return id;
+        if(isAuthorExist(id)){
+            authorRepo.deleteById(id);
+            return id;
+        }
+        throw new NotFoundException("this author id not found");
+
     }
     @Override
     public Author updateAuthor(Author author)
     {
-        if(isAuthorExist(author.getId()) != null){
+        if(isAuthorExist(author.getId())){
             return authorRepo.save(author);
         }else{
             throw new NotFoundException("There's no user with such id");
@@ -87,7 +87,7 @@ public class AuthorServiceImplUsingRepo implements AuthorService
     public List<Article> getAuthorArticles(Integer id)
     {
 //        checking if there's author with that id or not
-        if(isAuthorExist(id) != null){
+        if(isAuthorExist(id)){
             var articles = articleRepo.findAllByAuthor_Id(id);
 //            if author exist check if he has articles or not
             if(articles.isEmpty()){
@@ -104,9 +104,9 @@ public class AuthorServiceImplUsingRepo implements AuthorService
         }
     }
     @Override
-    public Author isAuthorExist(Integer id)
+    public boolean  isAuthorExist(Integer id)
     {
-        return authorRepo.findById(id).orElse(null);
+        return authorRepo.existsById(id);
     }
     private void addArticlesLinks(Article article)
     {
@@ -121,7 +121,7 @@ public class AuthorServiceImplUsingRepo implements AuthorService
 
         Links authorLink = new Links();
         Link authLink = linkTo(methodOn(AuthorController.class)
-                .getAuthorById(article.getAuthor().getId())).withRel("author");
+                 .getAuthorById(article.getAuthor().getId())).withRel("author");
         authorLink.setRel("author");
         authorLink.setHref(authLink.getHref());
 

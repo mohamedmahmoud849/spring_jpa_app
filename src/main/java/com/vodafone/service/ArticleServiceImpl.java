@@ -5,16 +5,14 @@ import java.util.List;
 
 import com.vodafone.errorhandlling.DuplicateEntity;
 import com.vodafone.errorhandlling.IncompleteRequest;
-import com.vodafone.repo.AuthorRepo;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.hateoas.Link;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.vodafone.contoller.ArticlesController;
-import com.vodafone.contoller.AuthorController;
+import com.vodafone.controller.ArticlesController;
+import com.vodafone.controller.AuthorController;
 import com.vodafone.errorhandlling.NotFoundException;
 import com.vodafone.model.*;
 import com.vodafone.repo.ArticleRepo;
@@ -26,7 +24,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Primary
 @Transactional
 @RequiredArgsConstructor
-public class ArticleServiceImplUsingRepo implements ArticleService
+public class ArticleServiceImpl implements ArticleService
 {
     private final ArticleRepo articleRepo;
     private final AuthorService authorService;
@@ -38,8 +36,14 @@ public class ArticleServiceImplUsingRepo implements ArticleService
     }
 
     @Override
-    public Article isArticleExist(Integer id) {
-        return articleRepo.findById(id).orElse(null);
+    public boolean isArticleExist(Integer id) {
+        return articleRepo.existsById(id);
+    }
+    @Override
+    public boolean isArticleExistForThisUser(Article article, Integer authorId) {
+        List<Article> articlesList = articleRepo.findAllByAuthor_Id(authorId);
+
+        return articlesList.stream().anyMatch(x->x.getId() == article.getId());
     }
 
     @Override
@@ -47,14 +51,13 @@ public class ArticleServiceImplUsingRepo implements ArticleService
         if(article.getAuthor()==null){
             throw new IncompleteRequest("please Enter auther details");
         }else{
-            if (authorService.isAuthorExist(article.getAuthor().getId()) == null){
+            if (!authorService.isAuthorExist(article.getAuthor().getId())){
                 throw new NotFoundException("There's no such author");
             }
         }
-        if(isArticleExist(article.getId()) != null){
-            throw new DuplicateEntity("This Entity Already in our DataBase ");
+        if(isArticleExistForThisUser(article,article.getAuthor().getId())){
+            throw new DuplicateEntity("This Entity Already Found ");
         }else{
-
             return articleRepo.save(article);
         }
     }
@@ -82,8 +85,9 @@ public class ArticleServiceImplUsingRepo implements ArticleService
 
     @Override
     public Article updateArticle(Article article) {
-        Article existingArticle = isArticleExist(article.getId());
-        if(existingArticle != null){
+
+        if(isArticleExist(article.getId())){
+            Article existingArticle = articleRepo.findById(article.getId()).get();
             article.setAuthor(existingArticle.getAuthor());
             return articleRepo.save(article);
         }else{

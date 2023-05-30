@@ -7,7 +7,9 @@ import java.util.List;
 
 public interface ArticleService {
     Article getArticleById(Integer id);
-    Article isArticleExist(Integer id);
+    boolean isArticleExist(Integer id);
+
+    boolean isArticleExistForThisUser(Article article, Integer authorId);
 
     Article addArticle(Article article);
 

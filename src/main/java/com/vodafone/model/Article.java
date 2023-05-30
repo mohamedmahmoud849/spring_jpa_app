@@ -22,6 +22,7 @@ public class Article {
     private String name;
     @ManyToOne
     @JoinColumn(name = "auther_id")
+
     private Author author;
     @JsonProperty("_links")
     @Transient

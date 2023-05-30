@@ -24,7 +24,7 @@ public class Author {
     @Column(name = "auther_name")
     private String name;
     @OneToMany(mappedBy = "author" ,cascade = CascadeType.REMOVE,orphanRemoval = true)
-    @JsonBackReference
+//    @JsonBackReference
     @JsonIgnore
     private List<Article> articleList;
     @JsonProperty("_links")

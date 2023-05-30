@@ -1,12 +1,9 @@
-package com.vodafone.contoller;
+package com.vodafone.controller;
 
 import com.vodafone.model.Article;
-import com.vodafone.model.Author;
 import com.vodafone.service.ArticleService;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
